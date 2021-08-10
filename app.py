@@ -78,6 +78,7 @@ EMAIL_PASSWORD = "9999999999999"
 app = Flask(__name__)
 auth = HTTPBasicAuth()
 
+status_started = False
 
 @app.route("/get_csv_links")
 def get_csv_links():
@@ -224,12 +225,13 @@ def api_update_task_done():
 
 @app.route("/api_index_all_tasks", methods = ["POST"])
 def api_index_all_tasks():
-
+	global status_started
 	month = request.form.get('month', None)
+	status_started = True
 	if month:
 		t = Thread(target = index_all_tasks, args = (month,))
 		t.start()
-	
+	# status_started = False
 	return redirect(url_for("main", started=True))
 
 	
@@ -460,9 +462,9 @@ def update_months():
 @app.route("/", methods = ["GET"])
 @auth.login_required
 def main():
-
-	started = request.args.get('started', False)
-
+	global status_started
+	started = request.args.get('started', status_started)
+	# started = request.args.get('started', False)
 	month = datetime.now().strftime("%B").lower()
 	year = datetime.now().year
 
